@@ -36,13 +36,63 @@ The API will allow users to:
 
 * Task Deletion
 
-
-``` 
-- scripts:
-# deploy the base and resolver stack, boilerplate
-graphql/deploy.sh 
-Makefile 
+####  Steps to test end to end deployment:
 ```
+To test it in local machine, we can use localstack container in docker 
+steps to deploy:
+- ensure environment variables are set with proper aws config: secret, id, region
+- ensure aws cli installed
+- to use localstack override aws config, set localstack_auth_token or api_key
+  note: free tier of localstack pro supports aws appsync
+
+may use the bash script or aws cli for following deployment: 
+
+1. create s3 bucket 
+   note for production environment:
+   ensure  proper iam role, action and policy attachment 
+     
+2. putObject graphql.schema in s3 and zip file of lamda
+   these files are pulled and used in cloudformation stack deployment
+
+Infrastructure is splitted into two sub stacks:
+in production further division may improve maintainability
+ CAPABILITY_IAM is passed  because IAM roles are craeted by custom name
+ and CFN stack is divided into two parts.
+ 
+3. deploy aws CFN base-stack, resource and iam policy for aws appsync, lambda and dynamodb
+   apiId and lambda resource arn are exported for resolver-stack reference
+   in production use SSM paramter store
+
+4. deploy aws CFN resolver-stack, 
+   query and mutation mapping template for request and response in lambda 
+   resolver ensures proper parsing of handler request context
+   here, the context is fully passed to get more understanding
+   in production the templates should be more consie
+   allowing only fieldName and input should suffice for query and mutation
+
+5. Mutation Query is authenticated by api-key.
+   Appsync is fully managed serviced: scaling data source, security,
+   resolve schema validation is done by aws.
+   list appsync api key to get the expiration.
+   alternatively new api keys can be generated as well.
+     
+   To test the query and mutation, ensure proper config is set
+   get the api key using api id.
+   
+   aws appsync list-graphql-apis --endpoint-url={$API_END_POINT} | grep "apiID"
+   aws appsync list-api-keys \
+    --api-id  {$GRAPQL_API_ID} #get if rom list-graphql or ssm param or exports
+    --endpoint-url={$API_END_POINT}
+   
+   sample_requests.txt has sample data for testing
+   
+   make sure to set the proper x-api-key header while invocation
+ 
+helpful cli commands can be found in Makefile
+- Makefile 
+```
+
+
 WIP Enhancement:
 - distinct IAM role and policy attachment,
 - distinct cloudformation stack for resource, iam roles, resolver
