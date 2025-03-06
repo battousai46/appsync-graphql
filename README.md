@@ -1,5 +1,6 @@
 #### POC: graphQL integration using aws AppSync, lambda and dynamodb
 
+#### * [project overview, cloudformation deployment walkthrough video ](https://www.youtube.com/watch?v=EIjycskcnWY)
 
 ![appsync_infra](https://github.com/user-attachments/assets/24f707e8-5f39-4baa-8741-e827cebde96d)
 
