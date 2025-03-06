@@ -1,5 +1,7 @@
 #### POC: graphQL integration using aws AppSync, lambda and dynamodb
 
+![appsync_lambda_dynamo](https://github.com/user-attachments/assets/4bd3a51c-5eef-4aa4-8002-3072bfd604ba)
+
 
 ```
  techstak: aws appsync graphql, lambda (python 11) as resolver, dynamodb as store
