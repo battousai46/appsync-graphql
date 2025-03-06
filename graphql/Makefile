@@ -15,6 +15,7 @@ install-venv-cli:
 	$(PYTHON) -m venv $(VENV)
 	$(PIP) install --upgrade pip -r requirements.txt
 
+
 setup-s3:
 	aws --endpoint-url=http://localhost:4566 s3 mb s3://graphql-datasource-lambda
 
