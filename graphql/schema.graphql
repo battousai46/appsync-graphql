@@ -1,0 +1,72 @@
+enum Status {
+  TO_DO
+  IN_PROGRESS
+  COMPLETED
+}
+
+type Task {
+  id: ID!
+  title: String!
+  description: String
+  due_date: AWSDateTime
+  status: Status!
+}
+
+type TaskResp {
+  id: ID
+  title: String
+  description: String
+  due_date: AWSDateTime
+  status: Status
+}
+
+type TaskPagination {
+  taskIds: [ID]
+  nextToken: String
+}
+
+type Error {
+  message: String!
+}
+
+type TaskResponse {
+  task: TaskResp
+  error: Error
+}
+
+type TaskPaginationResponse {
+  tasks: [TaskResp]
+  nextToken: String
+  error: Error
+}
+
+type Query {
+  getTask(id: ID!): TaskResponse
+  listTasks(limit: Int, nextToken: String): TaskPaginationResponse
+}
+
+input CreateTaskInput {
+  title: String!
+  description: String
+  due_date: AWSDateTime
+  status: Status = TO_DO
+}
+
+input UpdateTaskInput {
+  id: ID!
+  title: String
+  description: String
+  due_date: AWSDateTime
+  status: Status
+}
+
+type Mutation {
+  createTask(input: CreateTaskInput!): TaskResponse
+  updateTask(input: UpdateTaskInput!): TaskResponse
+  deleteTask(id: ID!): TaskResponse
+}
+
+schema {
+  query: Query
+  mutation: Mutation
+}

@@ -1,0 +1,136 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Task object GraphQL via AppSync using Lambda and DynamoDB.
+
+Resources:
+
+  # DynamoDB Table for Storing Tasks
+  TaskDB:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Tasks
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+
+  # IAM Role for Lambda to DynamoDB, Appsync Invocation
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: LambdaSTSRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+                - appsync.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaDynamoAppSyncPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource: "*" #!GetAtt specific lambda arns
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:GetItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                Resource: !GetAtt TaskDB.Arn  # specific dyanamo table
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+
+  # Lambda AppSync Resolver
+  TaskPythonLambdaFunction:
+    Type: AWS::Lambda::Function
+    # explicitly ensure waiting for IAM role creation
+    DependsOn: LambdaExecutionRole
+    Properties:
+      FunctionName: TaskResolverLambda
+      Handler: task_lambda.handler
+      Runtime: python3.11
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 30
+      Code:
+        S3Bucket: graphql-datasource-lambda
+        S3Key: task_lambda.zip
+      Environment:
+        Variables:
+          # ensure implicit table creation
+          DYNAMODB_TABLE: !Ref TaskDB
+           # replace localstack with envirnment var, or pass param, irfan testing
+          DYNAMODB_ENDPOINT: "http://host.docker.internal:4566"
+
+  AppSyncApi:
+    Type: AWS::AppSync::GraphQLApi
+    Properties:
+      Name: TaskAppSyncAPI
+      AuthenticationType: API_KEY
+
+  # load schema from graphql-datasource-lambda s3, created on separate stack
+  AppSyncSchema:
+    Type: AWS::AppSync::GraphQLSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      DefinitionS3Location: !Sub "s3://graphql-datasource-lambda/schema.graphql"
+
+  # attach data source
+  LambdaDataSource:
+    Type: AWS::AppSync::DataSource
+    DependsOn:
+      - AppSyncApi
+      - TaskPythonLambdaFunction
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      Name: LambdaDataSource
+      Type: AWS_LAMBDA
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt TaskPythonLambdaFunction.Arn
+      ServiceRoleArn: !GetAtt LambdaExecutionRole.Arn
+
+  # use api Key to access appsync
+  AppSyncApiKey:
+    Type: AWS::AppSync::ApiKey
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+
+Outputs:
+  LambdaFunctionArn:
+    Description: "Lambda function ARN"
+    Value: !GetAtt TaskPythonLambdaFunction.Arn
+
+  LambdaDataSourceName:
+    Description: "Lambda Data Source Name"
+    Value: !GetAtt LambdaDataSource.Name
+    Export:
+      Name: !Sub "${AWS::StackName}-LambdaDataSourceName"
+
+  AppSyncApiId:
+    Description: "The ID of the created AppSync API"
+    Value: !GetAtt AppSyncApi.ApiId
+    Export:
+      Name: !Sub "${AWS::StackName}-AppSyncApiId"
+
+  GraphQLApiEndpoint:
+    Description: "GraphQL API Endpoint"
+    Value: !GetAtt AppSyncApi.GraphQLUrl
+
+  AppSyncApiKey:
+    Description: "API Key for AppSync"
+    Value: !GetAtt AppSyncApiKey.ApiKey
