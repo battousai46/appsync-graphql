@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: AppSync Resolver Stack
+
+Parameters:
+  AppSyncApiId:
+    Type: String
+    Default: "base-stack-AppSyncApiId"
+
+Resources:
+  ### Resolver for the "getTask" Query ###
+  GetTaskResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !ImportValue "base-stack-AppSyncApiId"
+      #ApiId: !ImportValue
+     #    Fn::Sub: "${AppSyncApiId}"
+      TypeName: Query
+      FieldName: getTask
+      #DataSourceName: "LambdaDataSource"
+      DataSourceName: !ImportValue "base-stack-LambdaDataSourceName"
+      RequestMappingTemplate: "{\"version\":\"2018-05-29\",\"operation\":\"Invoke\",\"payload\":$util.toJson($ctx)}"
+      ResponseMappingTemplate: "$util.toJson($ctx.result)"
+
+  CreateTaskResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !ImportValue "base-stack-AppSyncApiId"
+         #Fn::Sub: "${AppSyncApiId}"
+      TypeName: Mutation
+      FieldName: createTask
+      DataSourceName: !ImportValue "base-stack-LambdaDataSourceName"
+      RequestMappingTemplate: "{\"version\":\"2018-05-29\",\"operation\":\"Invoke\",\"payload\":$util.toJson($ctx)}"
+      ResponseMappingTemplate: "$util.toJson($ctx.result)"
+
+  UpdateTaskResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !ImportValue
+        Fn::Sub: "${AppSyncApiId}"
+      TypeName: Mutation
+      FieldName: updateTask
+      DataSourceName: !ImportValue "base-stack-LambdaDataSourceName"
+      RequestMappingTemplate: "{\"version\":\"2018-05-29\",\"operation\":\"Invoke\",\"payload\":$util.toJson($ctx)}"
+      ResponseMappingTemplate: "$util.toJson($ctx.result)"
+
+  DeleteTaskResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !ImportValue
+        Fn::Sub: "${AppSyncApiId}"
+      TypeName: Mutation
+      FieldName: deleteTask
+      DataSourceName: !ImportValue "base-stack-LambdaDataSourceName"
+      RequestMappingTemplate: "{\"version\":\"2018-05-29\",\"operation\":\"Invoke\",\"payload\":$util.toJson($ctx)}"
+      ResponseMappingTemplate: "$util.toJson($ctx.result)"
+
+  ListTasksResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !ImportValue
+        Fn::Sub: "${AppSyncApiId}"
+      TypeName: "Query"
+      FieldName: "listTasks"
+      DataSourceName: !ImportValue "base-stack-LambdaDataSourceName"
+      RequestMappingTemplate: "{\"version\":\"2018-05-29\",\"operation\":\"Invoke\",\"payload\":$util.toJson($ctx)}"
+      ResponseMappingTemplate: "$util.toJson($ctx.result)"
+
+  AppSyncApiKey:
+    Type: AWS::AppSync::ApiKey
+    Properties:
+      ApiId: !ImportValue
+        Fn::Sub: "${AppSyncApiId}"

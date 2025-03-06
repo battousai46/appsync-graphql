@@ -1,0 +1,128 @@
+
+listTask
+
+query ListTasks($limit: Int, $nextToken: String) {
+  listTasks(limit: $limit, nextToken: $nextToken) {
+    tasks {
+      id
+      title
+      description
+      due_date
+      status
+    }
+    nextToken
+    error {
+      message
+    }
+  }
+}
+
+input json:
+{
+  "limit": 2,
+  "nextToken": "{ \"id\": \"153\" }"
+}
+
+
+
+
+createTask
+
+mutation CreateTask($input: CreateTaskInput!) {
+  createTask(input: $input) {
+    task {
+      id
+      title
+      description
+      due_date
+      status
+    }
+    error {
+      message
+    }
+  }
+}
+
+
+input
+
+{
+  "input": {
+    "title": "third Sample Task",
+    "description": "This is a sample task description.",
+    "due_date": "2025-12-31T23:59:59Z",
+    "status": "TO_DO"
+  }
+}
+
+
+getTask
+
+query GetTask($id: ID!) {
+  getTask(id: $id) {
+    task {
+      id
+      title
+      description
+      due_date
+      status
+    }
+    error {
+      message
+    }
+  }
+}
+
+input:
+{
+    "id":"95010028-9e4c-4afc-a373-4a8b801e3e59"
+}
+
+
+
+updateTask:
+mutation UpdateTask($input: UpdateTaskInput!) {
+  updateTask(input: $input) {
+    task {
+      id
+      title
+      description
+      due_date
+      status
+    }
+    error {
+      message
+    }
+  }
+}
+
+{
+  "input": {
+    "id":"3a3a558a-7b63-416d-9c28-a34b9fa99b52",
+    "title": "Updated Sample Task",
+    "description": "This is a updated task description.",
+    "due_date": "2025-12-31T23:59:59Z",
+    "status": "COMPLETED"
+  }
+}
+
+
+mutation DeleteTask($id: ID!) {
+  deleteTask(id: $id) {
+    task {
+      id
+      title
+      description
+      due_date
+      status
+    }
+    error {
+      message
+    }
+  }
+}
+
+{
+     "id":"3a3a558a-7b63-416d-9c28-a34b9fa99b52"
+}
+
