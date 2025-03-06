@@ -1,7 +1,7 @@
 #### POC: graphQL integration using aws AppSync, lambda and dynamodb
 
 
-
+![appsync_infra](https://github.com/user-attachments/assets/24f707e8-5f39-4baa-8741-e827cebde96d)
 
 
 ```
