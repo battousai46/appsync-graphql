@@ -39,6 +39,8 @@ The API will allow users to:
 
 ``` 
 - scripts:
+# deploy the base and resolver stack, boilerplate
+graphql/deploy.sh 
 Makefile 
 ```
 WIP Enhancement:
